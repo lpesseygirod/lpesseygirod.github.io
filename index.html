@@ -290,17 +290,17 @@ document.querySelectorAll('.player').forEach(pl=>{const figs=[...pl.querySelecto
  show(0)});
 // ---------- ink in water ----------
 let cv=document.getElementById('ink');
-const INK=[[0.84,0.20,0.52],[0.49,0.30,0.86],[0.18,0.44,0.92],[0.18,0.56,0.47]]; // the site's own pink, violet, blue, teal-green
+const INK=[[0.96,0.45,0.76],[0.66,0.45,0.96],[0.45,0.66,0.98],[0.42,0.86,0.80],[0.98,0.70,0.52]]; // pink, lilac, sky blue, mint, peach: in rainbow order, so neighbours blend
 function pal(h){const n=INK.length,x=((h%1)+1)%1*n,i=Math.floor(x),f=x-i,a=INK[i%n],b=INK[(i+1)%n];return a.map((v,k)=>v+(b[k]-v)*f)}
-const CFG={SIM:128,DYE:1024,DENS_DISS:0.6,VEL_DISS:0.45,PRESSURE:0.8,ITER:20,CURL:11,RADIUS:0.3,FORCE:3000,INK_AMT:0.14};
+const CFG={SIM:128,DYE:1024,DENS_DISS:0.42,VEL_DISS:0.7,PRESSURE:0.8,ITER:20,CURL:9,RADIUS:0.3,FORCE:1700,INK_AMT:0.14}; // soft pastel plumes with fine, delicate curls
 // Phones and weaker computers get a smaller simulation: a quarter of the pixels and half the solver steps.
 const LIGHT=matchMedia('(pointer:coarse)').matches||innerWidth<760||(navigator.hardwareConcurrency||8)<=4||(navigator.deviceMemory||8)<=4;
-if(LIGHT){CFG.SIM=96;CFG.DYE=512;CFG.ITER=10}
+if(LIGHT){CFG.SIM=80;CFG.DYE=512;CFG.ITER=10}
 // People who asked their device for less motion get still clouds instead.
 const CALM=matchMedia('(prefers-reduced-motion: reduce)').matches;
 let inkStopped=false;
 function startFluid(){
- const gl=cv.getContext('webgl2',{alpha:true,premultipliedAlpha:false,antialias:false,depth:false,stencil:false});
+ const gl=cv.getContext('webgl2',{alpha:true,premultipliedAlpha:true,antialias:false,depth:false,stencil:false});
  if(!gl)return false;if(!gl.getExtension('EXT_color_buffer_float')&&!gl.getExtension('EXT_color_buffer_half_float'))return false;
  gl.getExtension('OES_texture_float_linear');
  const VS=`#version 300 es
@@ -326,9 +326,16 @@ precision highp float;precision highp sampler2D;in vec2 vUv,vL,vR,vT,vB;out vec4
   grad:H+`uniform sampler2D uPressure,uVelocity;
    void main(){float L=texture(uPressure,vL).x,R=texture(uPressure,vR).x,T=texture(uPressure,vT).x,B=texture(uPressure,vB).x;vec2 v=texture(uVelocity,vUv).xy-vec2(R-L,T-B);o=vec4(v,0.,1.);}`,
   clear:H+`uniform sampler2D uTexture;uniform float value;void main(){o=value*texture(uTexture,vUv);}`,
-  display:H+`uniform sampler2D uTexture;
-   void main(){vec3 c=texture(uTexture,vUv).rgb;float a=max(c.r,max(c.g,c.b));vec3 col=c/max(a,1e-4)*.82; /* the palette's real shade, not brightened to neon */
-   a=1.-exp(-a*3.4); a=smoothstep(.035,.4,a); /* faint leftovers vanish: no grey haze, clean white page */ o=vec4(col,a*.85);}`
+  display:H+`uniform sampler2D uTexture;uniform vec2 texelSize;
+   void main(){vec3 c=texture(uTexture,vUv).rgb;float mx=max(c.r,max(c.g,c.b)),mn=min(c.r,min(c.g,c.b));
+    float a=1.-exp(-mx*2.6);                                   // how much ink is here
+    a*=smoothstep(.05,.22,(mx-mn)/max(mx,1e-4));                // a mixture that turned grey fades out
+    a=smoothstep(.02,.6,a)*.8;                                  // faint leftovers vanish; never fully opaque
+    vec3 col=mix(vec3(1.),c/max(mx,1e-4),.5+.35*a);             // pastel: thin ink is airy, thick ink a little richer
+    // a faint light from the top-left gives the edges a thin, silky line
+    float dx=length(texture(uTexture,vR).rgb)-length(texture(uTexture,vL).rgb),dy=length(texture(uTexture,vT).rgb)-length(texture(uTexture,vB).rgb);
+    vec3 n=normalize(vec3(dx,dy,length(texelSize)*4.));col*=clamp(.95+.12*dot(n,normalize(vec3(-.45,.55,1.))),.85,1.06);
+    o=vec4(min(col,vec3(1.))*a,a);} /* premultiplied: Safari and Chrome blend it the same way */`
  };
  function sh(t,src){const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s}
  const vs=sh(gl.VERTEX_SHADER,VS);
@@ -382,8 +389,8 @@ precision highp float;precision highp sampler2D;in vec2 vUv,vL,vR,vT,vB;out vec4
  // background drops never pop in: each one is poured in gently over ~2 s
  const pours=[];
  function pour(x,y,vx,vy,c,frames){pours.push({x,y,vx:vx/frames,vy:vy/frames,c:c.map(v=>v/frames),n:frames})}
- function pouring(){for(let i=pours.length-1;i>=0;i--){const p=pours[i];splat(p.x,p.y,p.vx,p.vy,p.c,.5);if(--p.n<=0)pours.splice(i,1)}}
- for(let k=0;k<3;k++){hue=(hue+.3)%1;const a=Math.random()*6.28;pour(Math.random(),Math.random(),Math.cos(a)*600,Math.sin(a)*600,pal(hue).map(v=>v*CFG.INK_AMT*2.6),110)}
+ function pouring(){for(let i=pours.length-1;i>=0;i--){const p=pours[i];splat(p.x,p.y,p.vx,p.vy,p.c,1.1);if(--p.n<=0)pours.splice(i,1)}}
+ for(let k=0;k<3;k++){hue=(hue+.3)%1;const a=Math.random()*6.28;pour(Math.random(),Math.random(),Math.cos(a)*600,Math.sin(a)*600,pal(hue).map(v=>v*CFG.INK_AMT*2),110)}
  let last=performance.now(),t=0;
  const slow={i:0,n:0,sum:0,done:false};
  (function loop(now){const raw=(now-last)/1000,dt=Math.min(raw,1/60);last=now;if(inkStopped)return;
@@ -392,11 +399,11 @@ precision highp float;precision highp sampler2D;in vec2 vUv,vL,vR,vT,vB;out vec4
   if(moved&&ptr){ // one continuous stroke along the mouse path: many small drops, colour drifting slowly
    if(sx===null){sx=ptr.x;sy=ptr.y}
    const dx=ptr.x-sx,dy=ptr.y-sy,asp=innerWidth/innerHeight,d=Math.hypot(dx*Math.max(asp,1),dy*Math.max(1/asp,1));
-   if(d>.0015){const n=Math.min(20,Math.max(1,Math.ceil(d/.006)));let vx=dx*CFG.FORCE/n,vy=dy*CFG.FORCE/n;if(asp<1)vx*=asp;else vy/=asp;
-    for(let k=1;k<=n;k++){hue=(hue+.0009)%1;splat(sx+dx*k/n,sy+dy*k/n,vx,vy,pal(hue).map(v=>v*CFG.INK_AMT*.17),.11)}
+   if(d>.0015){const n=Math.min(40,Math.max(1,Math.ceil(d/.0025)));let vx=dx*CFG.FORCE/n,vy=dy*CFG.FORCE/n;if(asp<1)vx*=asp;else vy/=asp;
+    for(let k=1;k<=n;k++){hue=(hue+.006)%1;splat(sx+dx*k/n,sy+dy*k/n,vx,vy,pal(hue).map(v=>v*CFG.INK_AMT*.1),.11)}
     sx=ptr.x;sy=ptr.y}
    moved=false}
-  t+=dt;if(Math.floor(t*.22)!==Math.floor((t-dt)*.22)){const a=Math.random()*6.28,sp=500+Math.random()*700;pour(Math.random(),Math.random(),Math.cos(a)*sp,Math.sin(a)*sp,pal(Math.random()).map(v=>v*CFG.INK_AMT*3),120)}
+  t+=dt;if(Math.floor(t*.22)!==Math.floor((t-dt)*.22)){const a=Math.random()*6.28,sp=500+Math.random()*700;pour(Math.random(),Math.random(),Math.cos(a)*sp,Math.sin(a)*sp,pal(Math.random()).map(v=>v*CFG.INK_AMT*2.2),120)}
   pouring();
   step(dt*.6);draw();requestAnimationFrame(loop)})(last);
  return true}
