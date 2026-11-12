@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lea — AI & software builder</title>
+<style>
+:root{--fg:#16171A;--mu:#5D636B;--bd:#E6E8EB;--soft:#F6F7F8;--pink:#D63384}
+*{box-sizing:border-box}html,body{margin:0}body{background:#fff;color:var(--fg);font:16px/1.6 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+#ink{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none}
+.top{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:16px 28px;pointer-events:none}
+.top>*{pointer-events:auto}
+.logo{font-weight:800;font-size:18px;background:rgba(255,255,255,.75);backdrop-filter:blur(12px);padding:6px 15px;border-radius:999px;border:1px solid var(--bd)}.logo b{color:var(--pink)}
+.tabs{display:none;gap:4px;background:rgba(255,255,255,.75);backdrop-filter:blur(14px);border:1px solid var(--bd);border-radius:999px;padding:5px}
+.tab{display:flex;align-items:center;gap:7px;padding:7px 14px;border-radius:999px;font-size:14px;font-weight:500;color:var(--mu)}.tab:hover{color:var(--fg)}
+.tab.on{background:var(--fg);color:#fff}.tab.on svg{stroke:#fff}
+.view{position:relative;z-index:1;display:none;min-height:100vh;max-width:1120px;margin:0 auto;padding:96px 28px 70px;animation:vin .45s cubic-bezier(.2,.8,.2,1)}
+.view.on{display:block}@keyframes vin{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+/* ---------- home ---------- */
+#home.on{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-top:40px}
+.headwrap{position:relative;width:250px;margin-bottom:6px}
+.head{width:250px;display:block;cursor:pointer;filter:drop-shadow(0 22px 26px rgba(0,0,0,.14));transition:transform .25s cubic-bezier(.3,1.5,.5,1);user-select:none;-webkit-user-drag:none}
+.head:hover{transform:scale(1.04) rotate(-2deg)}
+.bubble{position:absolute;left:84%;top:4px;width:max-content;max-width:260px;text-align:left;background:var(--fg);color:#fff;font-size:14.5px;font-weight:500;line-height:1.4;padding:12px 15px;border-radius:16px 16px 16px 4px;opacity:0;transform:translateY(8px) scale(.94);transform-origin:left bottom;transition:.22s;pointer-events:none;z-index:5;box-shadow:0 14px 30px -12px rgba(0,0,0,.4)}
+.bubble.on{opacity:1;transform:none;pointer-events:auto}
+.bubble a{display:inline-block;margin-top:8px;background:#fff;color:var(--fg);font-weight:700;font-size:13.5px;padding:6px 12px;border-radius:999px}
+.bubble a:hover{background:#FCE4F0}
+.hint{font-size:12.5px;color:var(--mu);margin:2px 0 14px}
+h1{font-size:clamp(46px,7vw,82px);line-height:1;letter-spacing:-3px;margin:4px 0 10px;font-weight:800}h1 b{color:var(--pink)}
+.sub{font-size:19px;font-weight:500;color:var(--mu);margin:0 0 30px}
+.tiles{display:grid;grid-template-columns:repeat(4,150px);gap:14px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:20px 8px;border:1px solid rgba(230,232,235,.9);border-radius:20px;background:rgba(255,255,255,.55);backdrop-filter:blur(14px) saturate(1.3);font-size:16px;font-weight:500;transition:transform .18s,box-shadow .18s,background .18s}
+.tile:hover{transform:translateY(-5px);background:rgba(255,255,255,.8);box-shadow:0 20px 44px -22px rgba(0,0,0,.35)}.tile svg{transition:transform .25s}.tile:hover svg{transform:scale(1.18) rotate(-6deg)}
+.mark{position:fixed;left:50%;bottom:-4vw;transform:translateX(-50%);font-size:26vw;font-weight:900;letter-spacing:-1vw;color:var(--fg);opacity:.035;pointer-events:none;z-index:0;line-height:1;white-space:nowrap}
+/* ---------- shared ---------- */
+.panel{background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border:1px solid var(--bd);border-radius:28px;padding:44px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:2.5px;color:var(--pink);text-transform:uppercase}
+h2{font-size:46px;letter-spacing:-1.6px;margin:6px 0 22px;line-height:1.08}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:12px 20px;border-radius:12px;font-weight:600;font-size:15px;border:1px solid var(--fg);background:#fff;color:var(--fg);margin:4px 8px 4px 0}
+.btn.dark{background:var(--fg);color:#fff}.btn.glass{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.5);color:inherit}.btn.ghosted{opacity:.55}
+/* me */
+.mewrap{display:grid;grid-template-columns:280px 1fr;gap:40px;align-items:start}
+.mephoto{border-radius:24px;background:linear-gradient(160deg,#FDF2F8,#EEF2FF 60%,#ECFDF5);padding:20px 10px 0;border:1px solid var(--bd)}
+.mephoto img{width:100%;display:block}
+.meta{color:var(--mu);font-size:16px;margin:-12px 0 18px}
+.mewrap p{font-size:17px;margin:0 0 14px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 18px}.chips span{background:var(--soft);border:1px solid var(--bd);border-radius:999px;padding:6px 14px;font-size:14px;font-weight:500}
+.long{margin-top:26px;font-size:17px}.long p{margin:0 0 14px}
+/* projects carousel */
+.prow{display:flex;gap:22px;overflow-x:auto;scroll-snap-type:x mandatory;padding:10px 4px 26px;margin:0 -4px;cursor:grab;scrollbar-width:thin}
+.prow.drag{cursor:grabbing;scroll-snap-type:none}.prow.drag .pcard{pointer-events:none}
+.pcard{flex:0 0 340px;height:460px;border-radius:30px;padding:34px 30px;position:relative;overflow:hidden;scroll-snap-align:start;color:var(--fg);border:1px solid rgba(0,0,0,.06);transition:transform .25s,box-shadow .25s}
+.pcard:hover{transform:translateY(-6px);box-shadow:0 30px 60px -30px rgba(0,0,0,.45)}
+.pcard.dark,.dhero.dark{color:#fff}
+.plabel{font-size:17px;font-weight:500;opacity:.9}.pname{font-size:42px;font-weight:800;letter-spacing:-1.4px;line-height:1.05;margin-top:4px}
+.art{position:absolute;left:0;right:0;bottom:0;height:62%;display:flex;align-items:center;justify-content:center}
+.ctrl{display:flex;justify-content:space-between;align-items:end;margin-bottom:8px}
+.arrows button{width:44px;height:44px;border-radius:50%;border:1px solid var(--bd);background:#fff;font-size:18px;cursor:pointer;margin-left:8px}.arrows button:hover{background:var(--soft)}
+.dragh{font-size:13px;color:var(--mu)}
+/* card art */
+.orb{position:absolute;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#E9D5FF,#A78BFA 40%,#6D28D9 75%);box-shadow:0 0 70px 20px rgba(167,139,250,.45);top:24%;animation:float 4s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-10px)}}
+.chat{position:absolute;max-width:230px;font-size:13.5px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);text-align:left}
+.chat.c1{left:22px;bottom:70px;border-bottom-left-radius:4px}.chat.c2{right:22px;bottom:22px;border-bottom-right-radius:4px}.chat.me{background:rgba(214,51,132,.75)}
+.chat.light{background:#fff;border-color:rgba(0,0,0,.06);color:var(--fg);box-shadow:0 8px 20px -10px rgba(0,0,0,.25)}
+.council{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;padding:0 22px}
+.council span{font-size:13px;font-weight:600;padding:8px 13px;border-radius:999px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.22)}
+.council .veto{background:#E5484D;border-color:#E5484D;animation:pulse 2s infinite}@keyframes pulse{50%{box-shadow:0 0 0 8px rgba(229,72,77,.2)}}
+.phone{width:170px;height:250px;border-radius:28px;background:#fff;border:1px solid #E4DCF7;box-shadow:0 24px 50px -20px rgba(124,77,219,.45);padding:24px 16px;text-align:left;position:relative;top:20px}
+.phone b{font-size:12.5px}.wave{display:flex;gap:3px;align-items:center;height:46px;margin:12px 0}.wave i{width:4px;border-radius:2px;background:#7C4DDB;animation:wv 1s ease-in-out infinite alternate}
+@keyframes wv{to{transform:scaleY(.35)}}.rec{width:30px;height:30px;border-radius:50%;background:#E5484D;margin:2px auto 12px;box-shadow:0 0 0 5px #FDE2E3}
+.phone p{height:7px;border-radius:4px;background:#EDE9F6;margin:7px 0}.phone p.s{width:60%}
+.budget{text-align:center;width:230px}.budget small{display:block;font-size:12.5px;opacity:.75;letter-spacing:1px;text-transform:uppercase}.budget b{font-size:88px;font-weight:800;line-height:1;letter-spacing:-3px;color:#FFB3B3}
+.budget svg{width:100%;margin:10px 0}
+.voice .bars{position:absolute;top:22%;left:50%;transform:translateX(-50%);display:flex;gap:6px;align-items:center;height:60px}
+.voice .bars i{width:7px;height:56px;border-radius:4px;background:#F08A4B;animation:wv .9s ease-in-out infinite alternate}
+/* detail */
+.back{display:inline-block;font-weight:600;color:var(--mu);margin-bottom:14px;background:rgba(255,255,255,.8);padding:6px 14px;border-radius:999px;border:1px solid var(--bd)}.back:hover{color:var(--fg)}
+.dhero{border-radius:32px;padding:46px;display:grid;grid-template-columns:1.1fr .9fr;gap:20px;min-height:380px;position:relative;overflow:hidden;border:1px solid rgba(0,0,0,.06)}
+.dhero h2{font-size:58px;margin:4px 0 10px}.dhero p{font-size:19px;opacity:.85;margin:0 0 24px;max-width:460px}
+.dhero .art.big{position:relative;height:auto;min-height:290px}
+.dhero:not(.dark) .btn.glass{border-color:var(--fg)}
+.dgrid{display:grid;grid-template-columns:1.5fr 1fr;gap:18px;margin-top:18px}
+.block{background:rgba(255,255,255,.9);backdrop-filter:blur(14px);border:1px solid var(--bd);border-radius:24px;padding:28px}.block.full{grid-column:1/-1}
+.block h4{margin:0 0 12px;font-size:12.5px;letter-spacing:2px;text-transform:uppercase;color:var(--pink)}.block p{margin:0;font-size:16.5px;color:#33373c}
+.block ul{margin:0;padding-left:20px;color:#33373c}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.step{background:var(--soft);border-radius:18px;padding:20px;border:1px solid var(--bd)}.step em{font-style:normal;display:inline-flex;width:30px;height:30px;border-radius:50%;background:var(--fg);color:#fff;align-items:center;justify-content:center;font-weight:700;font-size:14px}
+.step b{display:block;margin:10px 0 4px;font-size:17px}.step span{color:var(--mu);font-size:14.5px}
+.demo{aspect-ratio:16/9;border-radius:18px;background:repeating-linear-gradient(45deg,#F6F7F8,#F6F7F8 12px,#EFF1F3 12px,#EFF1F3 24px);border:1px dashed #C9CDD2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--mu)}
+.demo div{width:58px;height:58px;border-radius:50%;background:var(--fg);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px}
+.repo{display:block;border:1px solid var(--bd);border-radius:16px;padding:16px;background:#fff}.repo b{display:block;color:#0969DA}.repo span{font-size:14px;color:var(--mu)}.repo em{display:block;font-style:normal;font-weight:600;margin-top:6px}
+/* skills / contact */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.sk{border:1px solid var(--bd);border-radius:18px;padding:20px;background:#fff}.sk b{display:block;margin-bottom:10px}
+.center{text-align:center}
+.note{position:fixed;bottom:12px;right:12px;z-index:30;background:var(--fg);color:#fff;font-size:12px;padding:7px 11px;border-radius:8px;opacity:.85}
+@media(max-width:860px){.tiles{grid-template-columns:repeat(2,140px)}.mewrap,.dhero,.dgrid,.steps{grid-template-columns:1fr}.panel,.dhero{padding:26px}.tabs{overflow-x:auto;max-width:72vw}.bubble{left:50%;top:-70px;transform:translateX(-50%)}.bubble.on{transform:translateX(-50%)}}
+</style></head><body>
+<canvas id="ink"></canvas>
+<div class="mark" id="mark">LEA</div>
+<header class="top"><a class="logo" href="#home">Lea<b>.</b></a><nav class="tabs" id="tabs"><a class="tab" data-v="home" href="#home">Home</a><a class="tab" data-v="me" href="#me"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2F8F7E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.8 2 5.2 2 7 0"/><circle cx="9" cy="10" r=".7" fill="#2F8F7E"/><circle cx="15" cy="10" r=".7" fill="#2F8F7E"/></svg>Me</a><a class="tab" data-v="projects" href="#projects"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2F8F4E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/></svg>Projects</a><a class="tab" data-v="skills" href="#skills"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#7C4DDB" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 13 9 5 9-5"/></svg>Skills</a><a class="tab" data-v="contact" href="#contact"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#C08A1E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8" r="4"/><path d="M3 20c0-3.5 3-6 7-6 1.4 0 2.6.3 3.6.8"/><circle cx="18" cy="17" r="2.5"/><path d="m20 19 1.5 1.5"/></svg>Contact</a></nav></header>
+
+<section class="view" id="home">
+ <div class="headwrap"><img class="head" id="head" src="memoji.png" alt="Lea"><div class="bubble" id="bubble"><span id="btxt"></span><br><a id="blink" href="#me"></a></div></div>
+ <div class="hint">psst… touch my head</div>
+ <h1>Hi, I'm Lea<b>.</b></h1>
+ <p class="sub">Computer Science &amp; AI + BBA student · IE University</p>
+ <div class="tiles"><a class="tile" href="#me"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#2F8F7E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5c1.8 2 5.2 2 7 0"/><circle cx="9" cy="10" r=".7" fill="#2F8F7E"/><circle cx="15" cy="10" r=".7" fill="#2F8F7E"/></svg><span>Me</span></a><a class="tile" href="#projects"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#2F8F4E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18"/></svg><span>Projects</span></a><a class="tile" href="#skills"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#7C4DDB" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 13 9 5 9-5"/></svg><span>Skills</span></a><a class="tile" href="#contact"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#C08A1E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8" r="4"/><path d="M3 20c0-3.5 3-6 7-6 1.4 0 2.6.3 3.6.8"/><circle cx="18" cy="17" r="2.5"/><path d="m20 19 1.5 1.5"/></svg><span>Contact</span></a></div>
+</section>
+
+<section class="view" id="me"><div class="panel">
+ <div class="mewrap">
+  <div class="mephoto"><img src="memoji.png" alt="Lea"></div>
+  <div>
+   <div class="eyebrow">Me</div><h2>Lea</h2>
+   <div class="meta">Computer Science &amp; AI + BBA · IE University</div>
+   <p>Hey 👋<br>I'm Lea, a Computer Science &amp; AI + BBA student at IE University in Madrid. I'm passionate about AI, tech, and building things that actually run.</p>
+   <div class="chips"><span>AI</span><span>Developer</span><span>AI agents</span><span>Local LLMs</span><span>Fintech</span><span>Builder</span></div>
+  </div>
+ </div>
+ <div class="long">
+  <p>I'm Lea, a second-year CS + BBA student specialising in AI at IE University 🚀. I learn by building: I fine-tuned my own ~27B-parameter model to create <b>Sylvie</b>, a private assistant that lives entirely on my laptop. Then I got completely hooked on AI agents. <b>TraderBunny</b> is a whole investment committee made of agents that argue with each other before they decide anything 😅. I also shipped <b>Studiply</b>, an iOS app that turns my lectures into study notes.</p>
+  <p>Right now I'm going deeper into multi-agent systems and local AI, and I'm looking for a Summer 2027 internship where I can build with a real team. Anything you wanna know? 😄</p>
+  <a class="btn dark" href="cv.pdf" target="_blank">↓ Download CV</a><a class="btn" href="#projects">See my projects →</a>
+ </div>
+</div></section>
+
+<section class="view" id="projects">
+ <div class="ctrl"><div><div class="eyebrow">Projects</div><h2 style="margin-bottom:4px">What I'm building.</h2><div class="dragh">Scroll sideways or drag → · click a project to open it</div></div>
+ <div class="arrows"><button id="pl" aria-label="Previous">←</button><button id="pr" aria-label="Next">→</button></div></div>
+ <div class="prow" id="prow"><a class="pcard dark" href="#p-sylvie" style="background:radial-gradient(120% 90% at 50% 100%,#3B2A7A 0%,#16122E 55%,#0B0A14 100%)"><div class="plabel">Local AI assistant</div><div class="pname">Sylvie</div><div class="art"><div class="orb"></div><div class="chat c1">Hey Lea, what are we building today?</div><div class="chat c2 me">Let's finish the agents 🚀</div></div></a><a class="pcard dark" href="#p-traderbunny" style="background:linear-gradient(160deg,#0F3B2A 0%,#0B1F17 60%,#06120D 100%)"><div class="plabel">Fintech · Multi-agent</div><div class="pname">TraderBunny</div><div class="art"><div class="council"><span>Macro</span><span>Thesis</span><span>Valuation</span><span>Devil's advocate</span><span class="veto">Risk · VETO</span><span>CIO</span></div></div></a><a class="pcard" href="#p-studiply" style="background:linear-gradient(180deg,#FFFFFF 0%,#F3EEFF 55%,#E3D7FF 100%)"><div class="plabel">iOS app</div><div class="pname">Studiply</div><div class="art"><div class="phone"><b>Macro · Lecture 7</b><div class="wave"><i style="height:10px;animation-delay:0.00s"></i><i style="height:22px;animation-delay:0.07s"></i><i style="height:34px;animation-delay:0.14s"></i><i style="height:16px;animation-delay:0.21s"></i><i style="height:28px;animation-delay:0.28s"></i><i style="height:40px;animation-delay:0.35s"></i><i style="height:20px;animation-delay:0.42s"></i><i style="height:12px;animation-delay:0.49s"></i><i style="height:30px;animation-delay:0.56s"></i><i style="height:18px;animation-delay:0.63s"></i><i style="height:36px;animation-delay:0.70s"></i><i style="height:24px;animation-delay:0.77s"></i><i style="height:14px;animation-delay:0.84s"></i><i style="height:26px;animation-delay:0.91s"></i></div><div class="rec"></div><p></p><p></p><p class="s"></p></div></div></a><a class="pcard dark" href="#p-survival" style="background:linear-gradient(170deg,#3A0F14 0%,#1C0A0C 60%,#0E0607 100%)"><div class="plabel">AI trading experiment</div><div class="pname">Survival Council</div><div class="art"><div class="budget"><small>Starting budget</small><b>50</b><svg viewBox="0 0 200 60"><path d="M0 40 L20 36 L40 44 L60 30 L80 34 L100 22 L120 28 L140 18 L160 24 L180 12 L200 16" fill="none" stroke="#FF8A8A" stroke-width="2.5"/></svg><small>goal: survive</small></div></div></a><a class="pcard" href="#p-kore" style="background:linear-gradient(170deg,#FFF6E6 0%,#FFE3C7 55%,#FFC9A8 100%)"><div class="plabel">Voice companion · Concept</div><div class="pname">KORE</div><div class="art"><div class="voice"><div class="bars"><i style="animation-delay:0.00s"></i><i style="animation-delay:0.09s"></i><i style="animation-delay:0.18s"></i><i style="animation-delay:0.27s"></i><i style="animation-delay:0.36s"></i><i style="animation-delay:0.45s"></i><i style="animation-delay:0.54s"></i><i style="animation-delay:0.63s"></i><i style="animation-delay:0.72s"></i></div><div class="chat c1 light">Good morning! ☀️ How did you sleep?</div><div class="chat c2 light">Don't forget your 9am pills 💊</div></div></div></a></div>
+</section>
+
+<section class="view" id="p-sylvie">
+ <a class="back" href="#projects">← All projects</a>
+ <div class="dhero dark" style="background:radial-gradient(120% 90% at 50% 100%,#3B2A7A 0%,#16122E 55%,#0B0A14 100%)"><div class="dtext"><div class="plabel">Local AI assistant · Active</div><h2>Sylvie</h2><p>A private personal assistant that runs entirely on my own machine.</p><div class="dbtns"><a class="btn dark" href="https://github.com/lpesseygirod/sylvie" target="_blank">View code on GitHub ↗</a><a class="btn" href="https://github.com/lpesseygirod/sylvie#readme" target="_blank">Read the README</a><a class="btn glass" href="#demo-sylvie">Watch demo ↓</a></div></div><div class="art big"><div class="orb"></div><div class="chat c1">Hey Lea, what are we building today?</div><div class="chat c2 me">Let's finish the agents 🚀</div></div></div>
+ <div class="dgrid">
+  <div class="block wide"><h4>Overview</h4><p>Sylvie is my personal AI assistant. Instead of sending everything to the cloud, it runs locally on a ~27B-parameter model that I fine-tuned and improved myself, so your data never leaves the device. It's also the brain behind my other ideas, like KORE.</p></div>
+  <div class="block"><h4>Built with</h4><div class="chips"><span>Python</span><span>LLM fine-tuning</span><span>Local inference</span><span>Agents</span></div></div>
+  <div class="block full"><h4>How it works</h4><div class="steps"><div class="step"><em>1</em><b>Fine-tune</b><span>I fine-tuned and improved a ~27B-parameter model myself.</span></div><div class="step"><em>2</em><b>Run locally</b><span>Everything runs on-device: private by design, no cloud.</span></div><div class="step"><em>3</em><b>Grow</b><span>Next: several specialised agents working together, and self-learning.</span></div></div></div>
+  <div class="block wide" id="demo-sylvie"><h4>Demo</h4><div class="demo"><div>▶</div><span>Demo video or screenshots go here</span></div></div>
+  <div class="block"><h4>Code</h4><a class="repo" href="https://github.com/lpesseygirod/sylvie" target="_blank"><b>lpesseygirod / sylvie</b><span>Source code, README, setup instructions</span><em>Open ↗</em></a><h4 style="margin-top:22px">What's next</h4><ul><li>Multi-agent orchestration</li><li>Self-learning from how it's used</li></ul></div>
+ </div>
+</section><section class="view" id="p-traderbunny">
+ <a class="back" href="#projects">← All projects</a>
+ <div class="dhero dark" style="background:linear-gradient(160deg,#0F3B2A 0%,#0B1F17 60%,#06120D 100%)"><div class="dtext"><div class="plabel">Fintech · Multi-agent · Phase 1 · research memos</div><h2>TraderBunny</h2><p>An AI investment committee that researches, debates and decides like a fund.</p><div class="dbtns"><a class="btn dark" href="https://github.com/lpesseygirod/tradebunny" target="_blank">View code on GitHub ↗</a><a class="btn" href="https://github.com/lpesseygirod/tradebunny#readme" target="_blank">Read the README</a><a class="btn glass" href="#demo-traderbunny">Watch demo ↓</a></div></div><div class="art big"><div class="council"><span>Macro</span><span>Thesis</span><span>Valuation</span><span>Devil's advocate</span><span class="veto">Risk · VETO</span><span>CIO</span></div></div></div>
+ <div class="dgrid">
+  <div class="block wide"><h4>Overview</h4><p>TraderBunny is a multi-agent system modelled on a real investment committee. Each agent has a role, they debate every idea, and a risk manager can veto any decision. The hard risk limits are enforced in plain code, not left to the AI.</p></div>
+  <div class="block"><h4>Built with</h4><div class="chips"><span>Python</span><span>Multi-agent</span><span>Risk management</span><span>Interactive Brokers API</span></div></div>
+  <div class="block full"><h4>How it works</h4><div class="steps"><div class="step"><em>1</em><b>Build the case</b><span>Macro strategist, thesis analyst and valuation analyst research the idea.</span></div><div class="step"><em>2</em><b>Attack it</b><span>A devil's advocate argues against every thesis.</span></div><div class="step"><em>3</em><b>Decide safely</b><span>The risk manager can veto; the chair/CIO decides; the execution trader acts.</span></div></div></div>
+  <div class="block wide" id="demo-traderbunny"><h4>Demo</h4><div class="demo"><div>▶</div><span>Demo video or screenshots go here</span></div></div>
+  <div class="block"><h4>Code</h4><a class="repo" href="https://github.com/lpesseygirod/tradebunny" target="_blank"><b>lpesseygirod / tradebunny</b><span>Source code, README, setup instructions</span><em>Open ↗</em></a><h4 style="margin-top:22px">What's next</h4><ul><li>Phase 2: paper trading with Interactive Brokers</li><li>Phase 3: trades that need my approval</li><li>Phase 4: limited autonomy</li></ul></div>
+ </div>
+</section><section class="view" id="p-studiply">
+ <a class="back" href="#projects">← All projects</a>
+ <div class="dhero" style="background:linear-gradient(180deg,#FFFFFF 0%,#F3EEFF 55%,#E3D7FF 100%)"><div class="dtext"><div class="plabel">iOS app · App Store next</div><h2>Studiply</h2><p>Hit record in class, get structured study notes.</p><div class="dbtns"><a class="btn dark" href="https://github.com/lpesseygirod/studiply" target="_blank">View code on GitHub ↗</a><a class="btn" href="https://github.com/lpesseygirod/studiply#readme" target="_blank">Read the README</a><a class="btn glass" href="#demo-studiply">Watch demo ↓</a></div></div><div class="art big"><div class="phone"><b>Macro · Lecture 7</b><div class="wave"><i style="height:10px;animation-delay:0.00s"></i><i style="height:22px;animation-delay:0.07s"></i><i style="height:34px;animation-delay:0.14s"></i><i style="height:16px;animation-delay:0.21s"></i><i style="height:28px;animation-delay:0.28s"></i><i style="height:40px;animation-delay:0.35s"></i><i style="height:20px;animation-delay:0.42s"></i><i style="height:12px;animation-delay:0.49s"></i><i style="height:30px;animation-delay:0.56s"></i><i style="height:18px;animation-delay:0.63s"></i><i style="height:36px;animation-delay:0.70s"></i><i style="height:24px;animation-delay:0.77s"></i><i style="height:14px;animation-delay:0.84s"></i><i style="height:26px;animation-delay:0.91s"></i></div><div class="rec"></div><p></p><p></p><p class="s"></p></div></div></div>
+ <div class="dgrid">
+  <div class="block wide"><h4>Overview</h4><p>Studiply is an iOS app that records a lecture, transcribes it and turns it into clear study notes you can export as a PDF, organised by course.</p></div>
+  <div class="block"><h4>Built with</h4><div class="chips"><span>React Native</span><span>TypeScript</span><span>Expo</span><span>Supabase</span><span>Whisper</span><span>Claude API</span></div></div>
+  <div class="block full"><h4>How it works</h4><div class="steps"><div class="step"><em>1</em><b>Record</b><span>Hit record in class.</span></div><div class="step"><em>2</em><b>Transcribe</b><span>Whisper turns the audio into text.</span></div><div class="step"><em>3</em><b>Summarise</b><span>Claude writes structured study notes, exportable to PDF.</span></div></div></div>
+  <div class="block wide" id="demo-studiply"><h4>Demo</h4><div class="demo"><div>▶</div><span>Demo video or screenshots go here</span></div></div>
+  <div class="block"><h4>Code</h4><a class="repo" href="https://github.com/lpesseygirod/studiply" target="_blank"><b>lpesseygirod / studiply</b><span>Source code, README, setup instructions</span><em>Open ↗</em></a><h4 style="margin-top:22px">What's next</h4><ul><li>Publishing on the App Store</li><li>A laptop version: notes, folders and recording in one place</li></ul></div>
+ </div>
+</section><section class="view" id="p-survival">
+ <a class="back" href="#projects">← All projects</a>
+ <div class="dhero dark" style="background:linear-gradient(170deg,#3A0F14 0%,#1C0A0C 60%,#0E0607 100%)"><div class="dtext"><div class="plabel">AI trading experiment · Experiment</div><h2>Survival Council</h2><p>An autonomous trading agent given a small budget and one goal: survive.</p><div class="dbtns"><a class="btn dark" href="https://github.com/lpesseygirod/survival-council" target="_blank">View code on GitHub ↗</a><a class="btn" href="https://github.com/lpesseygirod/survival-council#readme" target="_blank">Read the README</a><a class="btn glass" href="#demo-survival">Watch demo ↓</a></div></div><div class="art big"><div class="budget"><small>Starting budget</small><b>50</b><svg viewBox="0 0 200 60"><path d="M0 40 L20 36 L40 44 L60 30 L80 34 L100 22 L120 28 L140 18 L160 24 L180 12 L200 16" fill="none" stroke="#FF8A8A" stroke-width="2.5"/></svg><small>goal: survive</small></div></div></div>
+ <div class="dgrid">
+  <div class="block wide"><h4>Overview</h4><p>Survival Council is an experiment in autonomy: an AI trading agent starts with a budget of 50 and has to make its own decisions to keep it alive. It's separate from TraderBunny, a test of how agents behave under pressure.</p></div>
+  <div class="block"><h4>Built with</h4><div class="chips"><span>Python</span><span>AI agents</span></div></div>
+  <div class="block full"><h4>How it works</h4><div class="steps"><div class="step"><em>1</em><b>Start small</b><span>The agent gets a fixed starting budget of 50.</span></div><div class="step"><em>2</em><b>Decide alone</b><span>It makes every trading decision itself.</span></div><div class="step"><em>3</em><b>Survive</b><span>The only goal: keep the budget alive.</span></div></div></div>
+  <div class="block wide" id="demo-survival"><h4>Demo</h4><div class="demo"><div>▶</div><span>Demo video or screenshots go here</span></div></div>
+  <div class="block"><h4>Code</h4><a class="repo" href="https://github.com/lpesseygirod/survival-council" target="_blank"><b>lpesseygirod / survival-council</b><span>Source code, README, setup instructions</span><em>Open ↗</em></a><h4 style="margin-top:22px">What's next</h4><ul><li>Logging and analysing every decision the agent makes</li></ul></div>
+ </div>
+</section><section class="view" id="p-kore">
+ <a class="back" href="#projects">← All projects</a>
+ <div class="dhero" style="background:linear-gradient(170deg,#FFF6E6 0%,#FFE3C7 55%,#FFC9A8 100%)"><div class="dtext"><div class="plabel">Voice companion · Concept</div><h2>KORE</h2><p>A proactive voice companion for older people, built on Sylvie.</p><div class="dbtns"><span class="btn ghosted">Code coming soon</span><a class="btn glass" href="#demo-kore">Watch demo ↓</a></div></div><div class="art big"><div class="voice"><div class="bars"><i style="animation-delay:0.00s"></i><i style="animation-delay:0.09s"></i><i style="animation-delay:0.18s"></i><i style="animation-delay:0.27s"></i><i style="animation-delay:0.36s"></i><i style="animation-delay:0.45s"></i><i style="animation-delay:0.54s"></i><i style="animation-delay:0.63s"></i><i style="animation-delay:0.72s"></i></div><div class="chat c1 light">Good morning! ☀️ How did you sleep?</div><div class="chat c2 light">Don't forget your 9am pills 💊</div></div></div></div>
+ <div class="dgrid">
+  <div class="block wide"><h4>Overview</h4><p>KORE is a voice companion that starts the conversation instead of waiting to be asked. It greets people when they wake up, remembers their stories and follows up on them. I started it with my grandparents in mind.</p></div>
+  <div class="block"><h4>Built with</h4><div class="chips"><span>Voice AI</span><span>Sylvie</span><span>Product design</span></div></div>
+  <div class="block full"><h4>How it works</h4><div class="steps"><div class="step"><em>1</em><b>Notice</b><span>A presence sensor greets them by name when they wake up.</span></div><div class="step"><em>2</em><b>Remember</b><span>Hobbies, life stories, the book they're reading, their daily schedule.</span></div><div class="step"><em>3</em><b>Care</b><span>Medication reminders; if they feel unwell, it offers to message family.</span></div></div></div>
+  <div class="block wide" id="demo-kore"><h4>Demo</h4><div class="demo"><div>▶</div><span>Demo video or screenshots go here</span></div></div>
+  <div class="block"><h4>Code</h4><div class="repo"><b>Repository coming soon</b><span>KORE is still a concept.</span></div><h4 style="margin-top:22px">What's next</h4><ul><li>First version for my own grandparents</li><li>Built on Sylvie as its brain</li></ul></div>
+ </div>
+</section>
+
+<section class="view" id="skills"><div class="panel">
+ <div class="eyebrow">Skills</div><h2>My toolbox.</h2>
+ <div class="sgrid">
+  <div class="sk"><b>🤖 AI &amp; LLMs</b><div class="chips"><span>LLM fine-tuning</span><span>Multi-agent systems</span><span>Local inference</span><span>Whisper</span><span>Claude API</span></div></div>
+  <div class="sk"><b>💻 Programming</b><div class="chips"><span>Python</span><span>TypeScript</span><span>React Native</span><span>SQL</span><span>C</span></div></div>
+  <div class="sk"><b>☁️ Cloud &amp; data</b><div class="chips"><span>Azure (AZ-900)</span><span>Supabase</span><span>PostgreSQL</span><span>SQLite</span></div></div>
+  <div class="sk"><b>📈 Business</b><div class="chips"><span>Corporate finance</span><span>Financial modelling</span><span>Market validation</span></div></div>
+  <div class="sk"><b>🌍 Languages</b><div class="chips"><span>Spanish</span><span>French</span><span>English · IELTS 7.5 (C1)</span></div></div>
+  <div class="sk"><b>🎓 Education</b><div class="chips"><span>IE University · CS + BBA (AI) 2025–2030</span><span>Microsoft Azure Fundamentals</span></div></div>
+ </div>
+</div></section>
+
+<section class="view" id="contact"><div class="panel center">
+ <div class="eyebrow">Contact</div><h2>Let's build something.</h2>
+ <p style="color:var(--mu);margin:-8px 0 26px">Looking for Summer 2027 internships in software / AI engineering and fintech.</p>
+ <a class="btn dark" href="mailto:lpesseygirod@gmail.com">✉ lpesseygirod@gmail.com</a><a class="btn" href="https://www.linkedin.com/in/lea-pessey-girod-vicente-444a51339" target="_blank">LinkedIn ↗</a><a class="btn" href="https://github.com/lpesseygirod" target="_blank">GitHub ↗</a><a class="btn" href="cv.pdf" target="_blank">↓ CV</a>
+</div></section>
+
+
+<script>
+// ---------- navigation (works with clicks even where URL hashes are blocked) ----------
+const views=[...document.querySelectorAll('.view')],tabsEl=document.getElementById('tabs');
+function go(id,push){if(!document.getElementById(id))id='home';
+ views.forEach(v=>v.classList.toggle('on',v.id===id));
+ tabsEl.style.display=id==='home'?'none':'flex';document.getElementById('mark').style.display=id==='home'?'':'none';
+ const tv=id.startsWith('p-')?'projects':id;document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.v===tv));
+ window.scrollTo(0,0);if(push){try{history.pushState(null,'','#'+id)}catch(e){}}}
+document.addEventListener('click',e=>{const a=e.target.closest('a[href^="#"]');if(!a)return;const id=a.getAttribute('href').slice(1);
+ if(id.startsWith('demo-')){e.preventDefault();document.getElementById(id).scrollIntoView({behavior:'smooth'});return}
+ e.preventDefault();go(id,true)});
+addEventListener('popstate',()=>go((location.hash||'#home').slice(1)));go((location.hash||'#home').slice(1));
+// ---------- talking head ----------
+(function(){const head=document.getElementById('head'),bub=document.getElementById('bubble'),bt=document.getElementById('btxt'),bl=document.getElementById('blink');
+ const L=[["Hi, I&#x27;m Lea! 👋 Want to know more about me?","#me","About me →"],["I build AI agents 🤖 Wanna see?","#projects","My projects →"],["Meet Sylvie, my own AI assistant ✨","#p-sylvie","Meet Sylvie →"],["Curious what I code with?","#skills","My skills →"],["Let&#x27;s build something together 😄","#contact","Contact me →"]];let i=-1,hide;
+ function say(){i=(i+1)%L.length;bt.textContent=L[i][0];bl.textContent=L[i][2];bl.setAttribute('href',L[i][1]);bub.classList.add('on');clearTimeout(hide);hide=setTimeout(()=>{if(!bub.matches(':hover'))bub.classList.remove('on')},4500)}
+ head.addEventListener('mouseenter',say);head.addEventListener('click',say);
+ bub.addEventListener('mouseleave',()=>{hide=setTimeout(()=>bub.classList.remove('on'),1500)});bub.addEventListener('mouseenter',()=>clearTimeout(hide));
+ setTimeout(say,1200)})();
+// ---------- project carousel: drag / arrows / wheel ----------
+(function(){const r=document.getElementById('prow');let down=false,sx=0,sl=0,moved=0;
+ r.addEventListener('pointerdown',e=>{down=true;moved=0;sx=e.clientX;sl=r.scrollLeft});
+ addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-sx;moved=Math.max(moved,Math.abs(dx));if(moved>6)r.classList.add('drag');r.scrollLeft=sl-dx});
+ addEventListener('pointerup',()=>{down=false;setTimeout(()=>r.classList.remove('drag'),0)});
+ r.addEventListener('click',e=>{if(moved>6){e.preventDefault();e.stopPropagation()}},true);
+ r.addEventListener('wheel',e=>{if(Math.abs(e.deltaY)>Math.abs(e.deltaX)){r.scrollLeft+=e.deltaY;e.preventDefault()}},{passive:false});
+ document.getElementById('pl').onclick=()=>r.scrollBy({left:-362,behavior:'smooth'});document.getElementById('pr').onclick=()=>r.scrollBy({left:362,behavior:'smooth'})})();
+// ---------- ink in water ----------
+let cv=document.getElementById('ink');
+const INK=[[0.84,0.20,0.52],[0.49,0.30,0.86],[0.18,0.44,0.92],[0.18,0.56,0.31]]; // pink, violet, blue, green
+const CFG={SIM:128,DYE:1024,DENS_DISS:0.32,VEL_DISS:0.3,PRESSURE:0.8,ITER:20,CURL:26,RADIUS:0.3,FORCE:5000,INK_AMT:0.11};
+function startFluid(){
+ const gl=cv.getContext('webgl2',{alpha:true,premultipliedAlpha:false,antialias:false,depth:false,stencil:false});
+ if(!gl)return false;if(!gl.getExtension('EXT_color_buffer_float')&&!gl.getExtension('EXT_color_buffer_half_float'))return false;
+ gl.getExtension('OES_texture_float_linear');
+ const VS=`#version 300 es
+precision highp float;in vec2 aPosition;out vec2 vUv,vL,vR,vT,vB;uniform vec2 texelSize;
+void main(){vUv=aPosition*.5+.5;vL=vUv-vec2(texelSize.x,0.);vR=vUv+vec2(texelSize.x,0.);vT=vUv+vec2(0.,texelSize.y);vB=vUv-vec2(0.,texelSize.y);gl_Position=vec4(aPosition,0.,1.);}`;
+ const H=`#version 300 es
+precision highp float;precision highp sampler2D;in vec2 vUv,vL,vR,vT,vB;out vec4 o;`;
+ const FS={
+  splat:H+`uniform sampler2D uTarget;uniform float aspectRatio,radius;uniform vec3 color;uniform vec2 point;
+   void main(){vec2 p=vUv-point;p.x*=aspectRatio;vec3 s=exp(-dot(p,p)/radius)*color;o=vec4(texture(uTarget,vUv).xyz+s,1.);}`,
+  advect:H+`uniform sampler2D uVelocity,uSource;uniform vec2 texelSize;uniform float dt,dissipation;
+   void main(){vec2 c=vUv-dt*texture(uVelocity,vUv).xy*texelSize;o=texture(uSource,c)/(1.+dissipation*dt);}`,
+  div:H+`uniform sampler2D uVelocity;
+   void main(){float L=texture(uVelocity,vL).x,R=texture(uVelocity,vR).x,T=texture(uVelocity,vT).y,B=texture(uVelocity,vB).y;vec2 C=texture(uVelocity,vUv).xy;
+   if(vL.x<0.)L=-C.x;if(vR.x>1.)R=-C.x;if(vT.y>1.)T=-C.y;if(vB.y<0.)B=-C.y;o=vec4(.5*(R-L+T-B),0.,0.,1.);}`,
+  curl:H+`uniform sampler2D uVelocity;
+   void main(){float L=texture(uVelocity,vL).y,R=texture(uVelocity,vR).y,T=texture(uVelocity,vT).x,B=texture(uVelocity,vB).x;o=vec4(.5*(R-L-T+B),0.,0.,1.);}`,
+  vort:H+`uniform sampler2D uVelocity,uCurl;uniform float curl,dt;
+   void main(){float L=texture(uCurl,vL).x,R=texture(uCurl,vR).x,T=texture(uCurl,vT).x,B=texture(uCurl,vB).x,C=texture(uCurl,vUv).x;
+   vec2 f=.5*vec2(abs(T)-abs(B),abs(R)-abs(L));f/=length(f)+1e-4;f*=curl*C;f.y*=-1.;vec2 v=texture(uVelocity,vUv).xy+f*dt;o=vec4(clamp(v,-1000.,1000.),0.,1.);}`,
+  pressure:H+`uniform sampler2D uPressure,uDivergence;
+   void main(){float L=texture(uPressure,vL).x,R=texture(uPressure,vR).x,T=texture(uPressure,vT).x,B=texture(uPressure,vB).x;o=vec4((L+R+B+T-texture(uDivergence,vUv).x)*.25,0.,0.,1.);}`,
+  grad:H+`uniform sampler2D uPressure,uVelocity;
+   void main(){float L=texture(uPressure,vL).x,R=texture(uPressure,vR).x,T=texture(uPressure,vT).x,B=texture(uPressure,vB).x;vec2 v=texture(uVelocity,vUv).xy-vec2(R-L,T-B);o=vec4(v,0.,1.);}`,
+  clear:H+`uniform sampler2D uTexture;uniform float value;void main(){o=value*texture(uTexture,vUv);}`,
+  display:H+`uniform sampler2D uTexture;
+   void main(){vec3 c=texture(uTexture,vUv).rgb;float a=max(c.r,max(c.g,c.b));vec3 col=c/max(a,1e-4);
+   a=1.-exp(-a*3.4); /* soft ink density, never fully opaque */ o=vec4(col,a*.8);}`
+ };
+ function sh(t,src){const s=gl.createShader(t);gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s}
+ const vs=sh(gl.VERTEX_SHADER,VS);
+ function prog(fs){const p=gl.createProgram();gl.attachShader(p,vs);gl.attachShader(p,sh(gl.FRAGMENT_SHADER,fs));gl.bindAttribLocation(p,0,'aPosition');gl.linkProgram(p);
+  if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));const u={};const n=gl.getProgramParameter(p,gl.ACTIVE_UNIFORMS);
+  for(let i=0;i<n;i++){const nm=gl.getActiveUniform(p,i).name;u[nm]=gl.getUniformLocation(p,nm)}return{p,u,use(){gl.useProgram(p);return u}}}
+ const P={};for(const k in FS)P[k]=prog(FS[k]);
+ gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,-1,1,1,1,1,-1]),gl.STATIC_DRAW);
+ gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array([0,1,2,0,2,3]),gl.STATIC_DRAW);
+ gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);gl.enableVertexAttribArray(0);
+ function blit(t){if(t){gl.viewport(0,0,t.w,t.h);gl.bindFramebuffer(gl.FRAMEBUFFER,t.fbo)}else{gl.viewport(0,0,gl.drawingBufferWidth,gl.drawingBufferHeight);gl.bindFramebuffer(gl.FRAMEBUFFER,null)}gl.drawElements(gl.TRIANGLES,6,gl.UNSIGNED_SHORT,0)}
+ function fbo(w,h){gl.activeTexture(gl.TEXTURE0);const tex=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,tex);
+  for(const [k,v] of [[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,k,v);
+  gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA16F,w,h,0,gl.RGBA,gl.HALF_FLOAT,null);
+  const f=gl.createFramebuffer();gl.bindFramebuffer(gl.FRAMEBUFFER,f);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,tex,0);
+  if(gl.checkFramebufferStatus(gl.FRAMEBUFFER)!==gl.FRAMEBUFFER_COMPLETE)throw new Error('fbo');
+  gl.viewport(0,0,w,h);gl.clearColor(0,0,0,0);gl.clear(gl.COLOR_BUFFER_BIT);
+  return{tex,fbo:f,w,h,tx:[1/w,1/h],bind(i){gl.activeTexture(gl.TEXTURE0+i);gl.bindTexture(gl.TEXTURE_2D,tex);return i}}}
+ function dbl(w,h){let a=fbo(w,h),b=fbo(w,h);return{w,h,tx:a.tx,get read(){return a},get write(){return b},swap(){[a,b]=[b,a]}}}
+ function res(r){let asp=gl.drawingBufferWidth/gl.drawingBufferHeight;if(asp<1)asp=1/asp;const mx=Math.round(r*asp),mn=Math.round(r);return gl.drawingBufferWidth>gl.drawingBufferHeight?[mx,mn]:[mn,mx]}
+ let vel,dye,pres,divg,crl;
+ function init(){const dpr=Math.min(devicePixelRatio||1,1.5);cv.width=innerWidth*dpr;cv.height=innerHeight*dpr;
+  const [sw,shh]=res(CFG.SIM),[dw,dh]=res(CFG.DYE);vel=dbl(sw,shh);dye=dbl(dw,dh);pres=dbl(sw,shh);divg=fbo(sw,shh);crl=fbo(sw,shh)}
+ init();let rT;addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(init,150)});
+ function splat(x,y,dx,dy,c){let u=P.splat.use();const asp=cv.width/cv.height;
+  gl.uniform1i(u.uTarget,vel.read.bind(0));gl.uniform1f(u.aspectRatio,asp);gl.uniform2f(u.point,x,y);gl.uniform3f(u.color,dx,dy,0);
+  gl.uniform1f(u.radius,CFG.RADIUS/100*(asp>1?asp:1));blit(vel.write);vel.swap();
+  gl.uniform1i(u.uTarget,dye.read.bind(0));gl.uniform3f(u.color,c[0],c[1],c[2]);blit(dye.write);dye.swap()}
+ function step(dt){gl.disable(gl.BLEND);let u;
+  u=P.curl.use();gl.uniform2fv(u.texelSize,vel.tx);gl.uniform1i(u.uVelocity,vel.read.bind(0));blit(crl);
+  u=P.vort.use();gl.uniform2fv(u.texelSize,vel.tx);gl.uniform1i(u.uVelocity,vel.read.bind(0));gl.uniform1i(u.uCurl,crl.bind(1));gl.uniform1f(u.curl,CFG.CURL);gl.uniform1f(u.dt,dt);blit(vel.write);vel.swap();
+  u=P.div.use();gl.uniform2fv(u.texelSize,vel.tx);gl.uniform1i(u.uVelocity,vel.read.bind(0));blit(divg);
+  u=P.clear.use();gl.uniform1i(u.uTexture,pres.read.bind(0));gl.uniform1f(u.value,CFG.PRESSURE);blit(pres.write);pres.swap();
+  u=P.pressure.use();gl.uniform2fv(u.texelSize,vel.tx);gl.uniform1i(u.uDivergence,divg.bind(0));
+  for(let i=0;i<CFG.ITER;i++){gl.uniform1i(u.uPressure,pres.read.bind(1));blit(pres.write);pres.swap()}
+  u=P.grad.use();gl.uniform2fv(u.texelSize,vel.tx);gl.uniform1i(u.uPressure,pres.read.bind(0));gl.uniform1i(u.uVelocity,vel.read.bind(1));blit(vel.write);vel.swap();
+  u=P.advect.use();gl.uniform2fv(u.texelSize,vel.tx);gl.uniform1i(u.uVelocity,vel.read.bind(0));gl.uniform1i(u.uSource,vel.read.bind(0));gl.uniform1f(u.dt,dt);gl.uniform1f(u.dissipation,CFG.VEL_DISS);blit(vel.write);vel.swap();
+  gl.uniform1i(u.uVelocity,vel.read.bind(0));gl.uniform1i(u.uSource,dye.read.bind(1));gl.uniform1f(u.dissipation,CFG.DENS_DISS);blit(dye.write);dye.swap()}
+ function draw(){const u=P.display.use();gl.uniform2f(u.texelSize,1/cv.width,1/cv.height);gl.uniform1i(u.uTexture,dye.read.bind(0));gl.clearColor(0,0,0,0);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.clear(gl.COLOR_BUFFER_BIT);blit(null)}
+ // pointer -> ink drops; colour drifts slowly through the palette
+ let ptr=null,moved=false,hue=Math.random(),touched=false;
+ function hsv(h,sa,v){const i=Math.floor(h*6),f=h*6-i,p=v*(1-sa),q=v*(1-f*sa),t=v*(1-(1-f)*sa);return [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i%6]}
+ function ink(){hue=(hue+.03+Math.random()*.05)%1;return hsv(hue,1,1).map(v=>v*CFG.INK_AMT)}
+ addEventListener('pointermove',e=>{touched=true;const x=e.clientX/innerWidth,y=1-e.clientY/innerHeight;
+  if(ptr){ptr.dx=(x-ptr.x)*CFG.FORCE;ptr.dy=(y-ptr.y)*CFG.FORCE;let asp=innerWidth/innerHeight;if(asp<1)ptr.dx*=asp;else ptr.dy/=asp}
+  else ptr={dx:0,dy:0};ptr.x=x;ptr.y=y;moved=true});
+ addEventListener('pointerdown',e=>{const x=e.clientX/innerWidth,y=1-e.clientY/innerHeight;for(let k=0;k<3;k++){const a=Math.random()*6.28;splat(x,y,Math.cos(a)*1100,Math.sin(a)*1100,ink().map(v=>v*3))}});
+ // a few drops on load + a slow drifting drop until the visitor moves the mouse
+ for(let k=0;k<9;k++){hue=(hue+.11)%1;const a=Math.random()*6.28;splat(Math.random(),Math.random(),Math.cos(a)*900,Math.sin(a)*900,hsv(hue,1,1).map(v=>v*CFG.INK_AMT*1.4))}
+ let last=performance.now(),t=0;
+ (function loop(now){const dt=Math.min((now-last)/1000,1/60);last=now;
+  if(moved&&ptr){splat(ptr.x,ptr.y,ptr.dx,ptr.dy,ink());moved=false}
+  t+=dt;if(Math.floor(t*1.6)!==Math.floor((t-dt)*1.6)){const a=Math.random()*6.28,sp=500+Math.random()*700;splat(Math.random(),Math.random(),Math.cos(a)*sp,Math.sin(a)*sp,hsv(Math.random(),.9,1).map(v=>v*CFG.INK_AMT*2.2))}
+  step(dt);draw();requestAnimationFrame(loop)})(last);
+ return true}
+
+function hsv2(h){const i=Math.floor(h*6),f=h*6-i;return [[1,f,0],[1-f,1,0],[0,1,f],[0,1-f,1],[f,0,1],[1,0,1-f]][i%6]}
+function fallback2D(){const fresh=document.createElement('canvas');fresh.id='ink';cv.replaceWith(fresh);cv=fresh;const ctx=cv.getContext('2d');let W,Hh;function rs(){W=cv.width=innerWidth;Hh=cv.height=innerHeight}rs();addEventListener('resize',rs);
+ let parts=[],last=null,h=0;addEventListener('pointermove',e=>{if(last){const dx=e.clientX-last.x,dy=e.clientY-last.y;h=(h+.02)%1;const c=hsv2(h).map(v=>Math.round(v*255));parts.push({x:e.clientX,y:e.clientY,vx:dx*.2,vy:dy*.2,r:18,a:.6,c})}last={x:e.clientX,y:e.clientY}});
+ (function tk(){ctx.clearRect(0,0,W,Hh);ctx.filter='blur(14px)';for(const p of parts){p.x+=p.vx;p.y+=p.vy;p.vx*=.95;p.vy*=.95;p.r+=.8;p.a*=.965;ctx.fillStyle=`rgba(${p.c},${p.a})`;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()}parts=parts.filter(p=>p.a>.02);ctx.filter='none';requestAnimationFrame(tk)})()}
+
+
+
+let mode='fluid';try{if(!startFluid()){mode='simple';fallback2D()}}catch(err){console.warn(err);mode='simple';fallback2D()}
+
+</script></body></html>
