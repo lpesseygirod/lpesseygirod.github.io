@@ -5,7 +5,7 @@
 :root{--fg:#16171A;--mu:#5D636B;--bd:#E6E8EB;--soft:#F6F7F8;--pink:#D63384}
 *{box-sizing:border-box}html,body{margin:0}body{background:linear-gradient(160deg,#FFFBFD 0%,#FCFCFF 50%,#FAFFFC 100%) fixed;color:var(--fg);font:16px/1.6 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
-#ink{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none}
+#ink{position:fixed;left:0;top:0;width:100vw;height:100vh;height:100lvh;z-index:0;pointer-events:none}
 .top{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:16px 28px;pointer-events:none}
 .top>*{pointer-events:auto}
 .logo{font-weight:800;font-size:18px;background:rgba(255,255,255,.75);backdrop-filter:blur(12px);padding:6px 15px;border-radius:999px;border:1px solid var(--bd)}.logo b{color:var(--pink)}
@@ -343,9 +343,10 @@ precision highp float;precision highp sampler2D;in vec2 vUv,vL,vR,vT,vB;out vec4
  function dbl(w,h){let a=fbo(w,h),b=fbo(w,h);return{w,h,tx:a.tx,get read(){return a},get write(){return b},swap(){[a,b]=[b,a]}}}
  function res(r){let asp=gl.drawingBufferWidth/gl.drawingBufferHeight;if(asp<1)asp=1/asp;const mx=Math.round(r*asp),mn=Math.round(r);return gl.drawingBufferWidth>gl.drawingBufferHeight?[mx,mn]:[mn,mx]}
  let vel,dye,pres,divg,crl;
- function init(){const dpr=Math.min(devicePixelRatio||1,1.5);cv.width=innerWidth*dpr;cv.height=innerHeight*dpr;
+ let sizeKey='';
+ function init(){const dpr=Math.min(devicePixelRatio||1,1.5);cv.width=cv.clientWidth*dpr;cv.height=cv.clientHeight*dpr;sizeKey=cv.clientWidth+'x'+cv.clientHeight;
   const [sw,shh]=res(CFG.SIM),[dw,dh]=res(CFG.DYE);vel=dbl(sw,shh);dye=dbl(dw,dh);pres=dbl(sw,shh);divg=fbo(sw,shh);crl=fbo(sw,shh)}
- init();let rT;addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(init,150)});
+ init();let rT;addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(()=>{if(cv.clientWidth+'x'+cv.clientHeight!==sizeKey)init()},150)});
  function splat(x,y,dx,dy,c,rad){let u=P.splat.use();const asp=cv.width/cv.height;
   gl.uniform1i(u.uTarget,vel.read.bind(0));gl.uniform1f(u.aspectRatio,asp);gl.uniform2f(u.point,x,y);gl.uniform3f(u.color,dx,dy,0);
   gl.uniform1f(u.radius,(rad||CFG.RADIUS)/100*(asp>1?asp:1));blit(vel.write);vel.swap();
@@ -365,9 +366,11 @@ precision highp float;precision highp sampler2D;in vec2 vUv,vL,vR,vT,vB;out vec4
  let ptr=null,moved=false,hue=Math.random(),touched=false,sx=null,sy=null;
  function hsv(h,sa,v){const i=Math.floor(h*6),f=h*6-i,p=v*(1-sa),q=v*(1-f*sa),t=v*(1-(1-f)*sa);return [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i%6]}
  function ink(){hue=(hue+.03+Math.random()*.05)%1;return hsv(hue,1,1).map(v=>v*CFG.INK_AMT)}
- addEventListener('pointermove',e=>{touched=true;const x=e.clientX/innerWidth,y=1-e.clientY/innerHeight;
+ addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;touched=true;const x=e.clientX/innerWidth,y=1-e.clientY/innerHeight;
   if(!ptr)ptr={};ptr.x=x;ptr.y=y;moved=true});
- addEventListener('pointerdown',e=>{const x=e.clientX/innerWidth,y=1-e.clientY/innerHeight;{const a=Math.random()*6.28;splat(x,y,Math.cos(a)*400,Math.sin(a)*400,ink().map(v=>v*2.5))}});
+ addEventListener('pointerdown',e=>{const x=e.clientX/innerWidth,y=1-e.clientY/innerHeight,a=Math.random()*6.28;
+  if(e.pointerType==='touch')pour(x,y,Math.cos(a)*300,Math.sin(a)*300,ink().map(v=>v*1.6),60);
+  else splat(x,y,Math.cos(a)*400,Math.sin(a)*400,ink().map(v=>v*2.5))});
  // a few drops on load + a slow drifting drop until the visitor moves the mouse
  // background drops never pop in: each one is poured in gently over ~2 s
  const pours=[];
@@ -389,9 +392,16 @@ precision highp float;precision highp sampler2D;in vec2 vUv,vL,vR,vT,vB;out vec4
  return true}
 
 function hsv2(h){const i=Math.floor(h*6),f=h*6-i;return [[1,f,0],[1-f,1,0],[0,1,f],[0,1-f,1],[f,0,1],[1,0,1-f]][i%6]}
-function fallback2D(){const fresh=document.createElement('canvas');fresh.id='ink';cv.replaceWith(fresh);cv=fresh;const ctx=cv.getContext('2d');let W,Hh;function rs(){W=cv.width=innerWidth;Hh=cv.height=innerHeight}rs();addEventListener('resize',rs);
- let parts=[],last=null,h=0;addEventListener('pointermove',e=>{if(last){const dx=e.clientX-last.x,dy=e.clientY-last.y;h=(h+.02)%1;const c=hsv2(h).map(v=>Math.round(v*255));parts.push({x:e.clientX,y:e.clientY,vx:dx*.2,vy:dy*.2,r:18,a:.6,c})}last={x:e.clientX,y:e.clientY}});
- (function tk(){ctx.clearRect(0,0,W,Hh);ctx.filter='blur(14px)';for(const p of parts){p.x+=p.vx;p.y+=p.vy;p.vx*=.95;p.vy*=.95;p.r+=.8;p.a*=.965;ctx.fillStyle=`rgba(${p.c},${p.a})`;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,7);ctx.fill()}parts=parts.filter(p=>p.a>.02);ctx.filter='none';requestAnimationFrame(tk)})()}
+function fallback2D(){const fresh=document.createElement('canvas');fresh.id='ink';cv.replaceWith(fresh);cv=fresh;const ctx=cv.getContext('2d');
+ const dpr=Math.min(devicePixelRatio||1,1.5);let W,Hh;function rs(){W=cv.clientWidth;Hh=cv.clientHeight;cv.width=W*dpr;cv.height=Hh*dpr;ctx.setTransform(dpr,0,0,dpr,0,0)}rs();addEventListener('resize',rs);
+ let parts=[],last=null,h=Math.random(),t=0;
+ function add(x,y,vx,vy,r,a){h=(h+.013)%1;parts.push({x,y,vx,vy,r,a,age:0,c:hsv2(h).map(v=>Math.round(150+v*105)).join(',')})}
+ addEventListener('pointermove',e=>{if(e.pointerType==='touch')return;if(last)add(e.clientX,e.clientY,(e.clientX-last.x)*.15,(e.clientY-last.y)*.15,26,.35);last={x:e.clientX,y:e.clientY}});
+ for(let k=0;k<3;k++){h=(h+.3)%1;add(Math.random()*W,Math.random()*Hh,0,0,140+Math.random()*80,.4)}
+ (function tk(){ctx.clearRect(0,0,W,Hh);if(++t%260===0)add(Math.random()*W,Math.random()*Hh,(Math.random()-.5)*.3,(Math.random()-.5)*.3,140+Math.random()*80,.4);
+  for(const p of parts){p.age++;p.x+=p.vx;p.y+=p.vy;p.vx*=.97;p.vy*=.97;p.r+=.25;const al=p.a*Math.min(1,p.age/90)*Math.pow(.997,p.age);
+   const g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);g.addColorStop(0,`rgba(${p.c},${al})`);g.addColorStop(1,`rgba(${p.c},0)`);ctx.fillStyle=g;ctx.fillRect(p.x-p.r,p.y-p.r,p.r*2,p.r*2)}
+  parts=parts.filter(p=>p.age<90||p.a*Math.pow(.997,p.age)>.02);requestAnimationFrame(tk)})()}
 
 
 
