@@ -3,7 +3,7 @@
 <title>Lea — AI & software builder</title>
 <style>
 :root{--fg:#16171A;--mu:#5D636B;--bd:#E6E8EB;--soft:#F6F7F8;--pink:#D63384}
-*{box-sizing:border-box}html,body{margin:0}body{background:linear-gradient(160deg,#FDF2F8 0%,#F1F0FF 50%,#ECFDF5 100%) fixed;color:var(--fg);font:16px/1.6 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+*{box-sizing:border-box}html,body{margin:0}body{background:linear-gradient(160deg,#FFFBFD 0%,#FCFCFF 50%,#FAFFFC 100%) fixed;color:var(--fg);font:16px/1.6 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 a{color:inherit;text-decoration:none}
 #ink{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;pointer-events:none}
 .top{position:fixed;top:0;left:0;right:0;z-index:20;display:flex;justify-content:space-between;align-items:center;padding:16px 28px;pointer-events:none}
@@ -291,7 +291,7 @@ document.querySelectorAll('.player').forEach(pl=>{const figs=[...pl.querySelecto
 // ---------- ink in water ----------
 let cv=document.getElementById('ink');
 const INK=[[0.84,0.20,0.52],[0.49,0.30,0.86],[0.18,0.44,0.92],[0.18,0.56,0.31]]; // pink, violet, blue, green
-const CFG={SIM:128,DYE:1024,DENS_DISS:0.45,VEL_DISS:0.7,PRESSURE:0.8,ITER:20,CURL:10,RADIUS:0.3,FORCE:1500,INK_AMT:0.14};
+const CFG={SIM:128,DYE:1024,DENS_DISS:0.45,VEL_DISS:0.45,PRESSURE:0.8,ITER:20,CURL:18,RADIUS:0.3,FORCE:3000,INK_AMT:0.14};
 function startFluid(){
  const gl=cv.getContext('webgl2',{alpha:true,premultipliedAlpha:false,antialias:false,depth:false,stencil:false});
  if(!gl)return false;if(!gl.getExtension('EXT_color_buffer_float')&&!gl.getExtension('EXT_color_buffer_half_float'))return false;
@@ -346,9 +346,9 @@ precision highp float;precision highp sampler2D;in vec2 vUv,vL,vR,vT,vB;out vec4
  function init(){const dpr=Math.min(devicePixelRatio||1,1.5);cv.width=innerWidth*dpr;cv.height=innerHeight*dpr;
   const [sw,shh]=res(CFG.SIM),[dw,dh]=res(CFG.DYE);vel=dbl(sw,shh);dye=dbl(dw,dh);pres=dbl(sw,shh);divg=fbo(sw,shh);crl=fbo(sw,shh)}
  init();let rT;addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(init,150)});
- function splat(x,y,dx,dy,c){let u=P.splat.use();const asp=cv.width/cv.height;
+ function splat(x,y,dx,dy,c,rad){let u=P.splat.use();const asp=cv.width/cv.height;
   gl.uniform1i(u.uTarget,vel.read.bind(0));gl.uniform1f(u.aspectRatio,asp);gl.uniform2f(u.point,x,y);gl.uniform3f(u.color,dx,dy,0);
-  gl.uniform1f(u.radius,CFG.RADIUS/100*(asp>1?asp:1));blit(vel.write);vel.swap();
+  gl.uniform1f(u.radius,(rad||CFG.RADIUS)/100*(asp>1?asp:1));blit(vel.write);vel.swap();
   gl.uniform1i(u.uTarget,dye.read.bind(0));gl.uniform3f(u.color,c[0],c[1],c[2]);blit(dye.write);dye.swap()}
  function step(dt){gl.disable(gl.BLEND);let u;
   u=P.curl.use();gl.uniform2fv(u.texelSize,vel.tx);gl.uniform1i(u.uVelocity,vel.read.bind(0));blit(crl);
@@ -362,20 +362,25 @@ precision highp float;precision highp sampler2D;in vec2 vUv,vL,vR,vT,vB;out vec4
   gl.uniform1i(u.uVelocity,vel.read.bind(0));gl.uniform1i(u.uSource,dye.read.bind(1));gl.uniform1f(u.dissipation,CFG.DENS_DISS);blit(dye.write);dye.swap()}
  function draw(){const u=P.display.use();gl.uniform2f(u.texelSize,1/cv.width,1/cv.height);gl.uniform1i(u.uTexture,dye.read.bind(0));gl.clearColor(0,0,0,0);gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.clear(gl.COLOR_BUFFER_BIT);blit(null)}
  // pointer -> ink drops; colour drifts slowly through the palette
- let ptr=null,moved=false,hue=Math.random(),touched=false;
+ let ptr=null,moved=false,hue=Math.random(),touched=false,sx=null,sy=null;
  function hsv(h,sa,v){const i=Math.floor(h*6),f=h*6-i,p=v*(1-sa),q=v*(1-f*sa),t=v*(1-(1-f)*sa);return [[v,t,p],[q,v,p],[p,v,t],[p,q,v],[t,p,v],[v,p,q]][i%6]}
  function ink(){hue=(hue+.03+Math.random()*.05)%1;return hsv(hue,1,1).map(v=>v*CFG.INK_AMT)}
  addEventListener('pointermove',e=>{touched=true;const x=e.clientX/innerWidth,y=1-e.clientY/innerHeight;
-  if(ptr){ptr.dx=(x-ptr.x)*CFG.FORCE;ptr.dy=(y-ptr.y)*CFG.FORCE;let asp=innerWidth/innerHeight;if(asp<1)ptr.dx*=asp;else ptr.dy/=asp}
-  else ptr={dx:0,dy:0};ptr.x=x;ptr.y=y;moved=true});
+  if(!ptr)ptr={};ptr.x=x;ptr.y=y;moved=true});
  addEventListener('pointerdown',e=>{const x=e.clientX/innerWidth,y=1-e.clientY/innerHeight;{const a=Math.random()*6.28;splat(x,y,Math.cos(a)*400,Math.sin(a)*400,ink().map(v=>v*2.5))}});
  // a few drops on load + a slow drifting drop until the visitor moves the mouse
- for(let k=0;k<5;k++){hue=(hue+.19)%1;const a=Math.random()*6.28;splat(Math.random(),Math.random(),Math.cos(a)*200,Math.sin(a)*200,hsv(hue,1,1).map(v=>v*CFG.INK_AMT*1.4))}
+ for(let k=0;k<5;k++){hue=(hue+.19)%1;const a=Math.random()*6.28;splat(Math.random(),Math.random(),Math.cos(a)*110,Math.sin(a)*110,hsv(hue,1,1).map(v=>v*CFG.INK_AMT*1.4))}
  let last=performance.now(),t=0;
  (function loop(now){const dt=Math.min((now-last)/1000,1/60);last=now;
-  if(moved&&ptr){splat(ptr.x,ptr.y,ptr.dx,ptr.dy,ink());moved=false}
-  t+=dt;if(Math.floor(t*.4)!==Math.floor((t-dt)*.4)){const a=Math.random()*6.28,sp=110+Math.random()*150;splat(Math.random(),Math.random(),Math.cos(a)*sp,Math.sin(a)*sp,hsv(Math.random(),.9,1).map(v=>v*CFG.INK_AMT*2.2))}
-  step(dt*.3);draw();requestAnimationFrame(loop)})(last);
+  if(moved&&ptr){ // one continuous stroke along the mouse path: many small drops, colour drifting slowly
+   if(sx===null){sx=ptr.x;sy=ptr.y}
+   const dx=ptr.x-sx,dy=ptr.y-sy,asp=innerWidth/innerHeight,d=Math.hypot(dx*Math.max(asp,1),dy*Math.max(1/asp,1));
+   if(d>.0015){const n=Math.min(20,Math.max(1,Math.ceil(d/.006)));let vx=dx*CFG.FORCE/n,vy=dy*CFG.FORCE/n;if(asp<1)vx*=asp;else vy/=asp;
+    for(let k=1;k<=n;k++){hue=(hue+.0009)%1;splat(sx+dx*k/n,sy+dy*k/n,vx,vy,hsv(hue,1,1).map(v=>v*CFG.INK_AMT*.13),.11)}
+    sx=ptr.x;sy=ptr.y}
+   moved=false}
+  t+=dt;if(Math.floor(t*.4)!==Math.floor((t-dt)*.4)){const a=Math.random()*6.28,sp=60+Math.random()*90;splat(Math.random(),Math.random(),Math.cos(a)*sp,Math.sin(a)*sp,hsv(Math.random(),.9,1).map(v=>v*CFG.INK_AMT*2.2))}
+  step(dt*.6);draw();requestAnimationFrame(loop)})(last);
  return true}
 
 function hsv2(h){const i=Math.floor(h*6),f=h*6-i;return [[1,f,0],[1-f,1,0],[0,1,f],[0,1-f,1],[f,0,1],[1,0,1-f]][i%6]}
