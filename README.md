@@ -11,7 +11,7 @@ I'm Lea, a Computer Science & AI + Business Administration student at IE Univers
   - [Sylvie](https://github.com/lpesseygirod/sylvie): my personal AI assistant that runs on my laptop.
   - [KORE](https://github.com/lpesseygirod/kore): a voice companion for older people who speak Spanish.
   - [Survival Council](https://github.com/lpesseygirod/survival-council): an AI that gets $50 and has to pay its own way.
-  - [TradeBunny](https://github.com/lpesseygirod/tradebunny): a crypto grid-trading system where I approve every plan.
+  - [TradeBunny](https://github.com/lpesseygirod/tradebunny/tree/investment-council): an AI investment committee where a plain-code risk engine has the only veto and I approve every trade.
   - [Studiply](https://github.com/lpesseygirod/studiply): a study app for the iPhone and the web.
 - **Skills:** what I work with, and where I've used each one.
 - **Contact:** email, LinkedIn and GitHub.
@@ -21,7 +21,8 @@ I'm Lea, a Computer Science & AI + Business Administration student at IE Univers
 One HTML file, no framework and no build step:
 
 - **Pages without reloading.** Each section is a view, and a few lines of JavaScript switch between them from the URL (`#me`, `#projects`, `#p-sylvie`…), so links and the back button work.
-- **The ink background** is a small fluid simulation written in WebGL2: the mouse pours ink that flows and fades, and a few soft drops drift in on their own. On browsers without WebGL2 it falls back to a simpler 2D canvas.
+- **The ink background** is a small fluid simulation written in WebGL2: the mouse draws thin ink that flows and fades, and a few soft drops drift in on their own. On browsers without WebGL2 it falls back to a simpler 2D canvas.
+- **How it works** on each project is a short flow you can click through. It plays on its own while it's on screen, and becomes a vertical timeline on phones.
 - **The demos** are recordings of the real apps running offline on made-up data (animated WebP), plus screenshots, shown in a small player with captions and play/pause.
 - **Light on purpose:** no external scripts, no tracking, no cookies.
 
